@@ -1,0 +1,93 @@
+﻿<div>
+    @if (EnableSearch)
+    {
+        <div class="row py-2">
+            <div class="col-5 col-xl-3 p-1">
+                <InputText class="form-control form-rounded" @bind-Value="@Parameters.Search" placeholder="Szukaj"></InputText>
+            </div>
+            @AfrerSearch
+            <div class="col-3 col-xl-1 p-1">
+                <button class="btn bg-c3 form-rounded w-100" @onclick="@(() => GoSearch.InvokeAsync(Parameters.Search))">Szukaj</button>
+            </div>
+            @if (EnableAdd)
+            {
+                <div class="col-3 col-xl-1 p-1 ms-auto">
+                    <button class="btn bg-c3 form-rounded w-100" @onclick="@(() => AddNew.InvokeAsync())">Dodaj</button>
+                </div>
+            }
+
+        </div>
+    }
+    <div>
+        @Body
+    </div>
+    @if (EnablePagination)
+    {
+        <div class="row py-2">
+            <div class="col-3">
+                <ul class="pagination">
+                    <li class="page-item rounded-start"><a class="page-link @(Parameters.PageSize == 10 ? "page-link-selected" : "")" @onclick="@(() => PageSizeChange.InvokeAsync(10))">10</a></li>
+                    <li class="page-item"><a class="page-link @(Parameters.PageSize == 30 ? "page-link-selected" : "")" @onclick="@(() => PageSizeChange.InvokeAsync(30))">30</a></li>
+                    <li class="page-item rounded-end"><a class="page-link @(Parameters.PageSize == 50 ? "page-link-selected" : "")" @onclick="@(() => PageSizeChange.InvokeAsync(50))">50</a></li>
+                </ul>
+            </div>
+            @if (Parameters.TotalPages > 1)
+            {
+                <div class="col-1  ms-auto">
+                    <ul class="pagination float-end">
+                        <li class="page-item d-block @(Parameters.Page > 2 ? "d-block" : "d-none")">
+                            <a class="page-link" @onclick="@(() => PageChange.InvokeAsync(1))">1</a>
+                        </li>
+                        <li class="page-item @(Parameters.PreviousPageExist ? "d-block" : "d-none")">
+                            <a class="page-link" @onclick="@(() => PageChange.InvokeAsync(Parameters.Page - 1))">
+                                @(Parameters.Page - 1)
+                            </a>
+                        </li>
+                        <li class="page-item"><a class="page-link page-link-selected">@Parameters.Page</a></li>
+                        <li class="page-item @(Parameters.NextPageExist ? "d-block" : "d-none")">
+                            <a class="page-link" @onclick="@(() => PageChange.InvokeAsync(Parameters.Page + 1))">
+                                @(Parameters.Page + 1)
+                            </a>
+                        </li>
+                        <li class="page-item @((Parameters.Page + 1) < Parameters.TotalPages ? "d-block" : "d-none")">
+                            <a class="page-link" @onclick="@(() => PageChange.InvokeAsync(Parameters.TotalPages))">@Parameters.TotalPages</a>
+                        </li>
+                    </ul>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public BasePagerFilter Parameters { get; set; } = new BasePagerFilter();
+
+    [Parameter]
+    public RenderFragment? Body { get; set; }
+
+    [Parameter]
+    public RenderFragment? AfrerSearch { get; set; }
+
+    [Parameter]
+    public EventCallback<string> GoSearch { get; set; }
+
+    [Parameter]
+    public EventCallback AddNew { get; set; }
+
+    [Parameter]
+    public EventCallback<int> PageChange { get; set; }
+
+    [Parameter]
+    public EventCallback<int> PageSizeChange { get; set; }
+
+    [Parameter]
+    public bool EnableSearch { get; set; } = false;
+
+    [Parameter]
+    public bool EnableAdd { get; set; } = false;
+
+    [Parameter]
+    public bool EnablePagination { get; set; } = false;
+}

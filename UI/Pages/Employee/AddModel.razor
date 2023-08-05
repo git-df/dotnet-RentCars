@@ -1,0 +1,53 @@
+﻿@layout UserLayout
+@page "/addmodel"
+@attribute [Authorize(Roles = "Admin, Employee")]
+
+<UserBanner H1="Dodawanie modelu"></UserBanner>
+
+<div class="container py-4">
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit" class="row">
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Marka</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.BrandName" placeholder="Marka"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Model</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.ModelName" placeholder="Model"></InputText>
+        </div>
+        <a href="/models" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 me-auto">Wróć</a>
+        <span class="col text-center @MessageClass">@Message</span>
+        @if (!@InputReadonly)
+        {
+            <button type="submit" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 ms-auto">Dodaj</button>
+        }
+    </EditForm>
+</div>
+
+
+@code {
+    [Inject]
+    public ICarModelService modelService { get; set; }
+
+    public AddModelCommand Model { get; set; } = new AddModelCommand();
+
+    public string Message { get; set; } = string.Empty;
+
+    public string MessageClass { get; set; } = string.Empty;
+    public bool InputReadonly { get; set; } = false;
+
+
+    protected async Task HandleSubmit()
+    {
+        var response = await modelService.AddModel(Model);
+
+        MessageClass = response.Success ? "text-success" : "text-danger";
+        InputReadonly = response.Success ? true : false;
+
+        Message = response.Message;
+
+        if (response.ValidationErrors != null)
+        {
+            Message = response.ValidationErrors.First();
+        }
+    }
+}

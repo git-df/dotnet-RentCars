@@ -1,0 +1,20 @@
+﻿<div id="mainbanner">
+    <div id="mbup"></div>
+    <div id="mbdown">
+        <div id="mbdt"></div>
+        <div id="mbdhero" class="p-4">
+            <div id="hero" class="pe-3">
+                <h1>@H1</h1>
+                <h4 class="text-end tx-c3">@H4</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string H1 { get; set; } = string.Empty;
+
+    [Parameter]
+    public string H4 { get; set; } = string.Empty;
+}

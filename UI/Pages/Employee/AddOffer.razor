@@ -1,0 +1,90 @@
+﻿@layout UserLayout
+@page "/addoffer"
+@attribute [Authorize(Roles = "Admin, Employee")]
+
+<UserBanner H1="Dodawanie oferty"></UserBanner>
+
+<div class="container py-4">
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit" class="row">
+        <div class="form-group pb-3 p-1 col-lg-8">
+            <label class="ms-3">Samochód</label>
+            <InputSelect @bind-Value="@Model.CarId" class="form-select" size="10">
+                @foreach (var item in ModelCars)
+                {
+                    <option value="@item.Id">@item.CarsModel.BrandName @item.CarsModel.ModelName Rok: @item.Year VIN: @item.Vin Rejestracja: @item.PlaceNumber</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-4">
+            <label class="ms-3">Oddział</label>
+            <InputSelect @bind-Value="@Model.BranchId" class="form-select" size="10">
+                @foreach (var item in ModelBranches)
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Cena za godzinę</label>
+            <InputNumber class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.PricePerHour" placeholder="Cena za godzinę"></InputNumber>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Cena za dzień</label>
+            <InputNumber class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.PricePreDay" placeholder="Cena za dzień"></InputNumber>
+        </div>
+        <a href="/offers" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 me-auto">Wróć</a>
+        <span class="col text-center @MessageClass">@Message</span>
+        @if (!@InputReadonly)
+        {
+            <button type="submit" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 ms-auto">Dodaj</button>
+        }
+    </EditForm>
+</div>
+
+
+@code {
+    [Inject]
+    public IOfferService offerService { get; set; }
+
+    public AddOfferCommand Model { get; set; } = new AddOfferCommand();
+    public List<GetCarsToOfferQueryVM> ModelCars { get; set; } = new List<GetCarsToOfferQueryVM>();
+    public List<GetBranchesToOfferQueryVM> ModelBranches { get; set; } = new List<GetBranchesToOfferQueryVM>();
+
+
+    public string Message { get; set; } = string.Empty;
+
+    public string MessageClass { get; set; } = string.Empty;
+    public bool InputReadonly { get; set; } = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var dataCars = await offerService.GetCarsToOffer();
+
+        if (dataCars.Success)
+        {
+            ModelCars = dataCars.Data.ToList();
+        }
+
+        var dataBranches = await offerService.GetBranchesToOffer();
+
+        if (dataBranches.Success)
+        {
+            ModelBranches = dataBranches.Data.ToList();
+        }
+    }
+
+    protected async Task HandleSubmit()
+    {
+        var response = await offerService.AddOffer(Model);
+
+        MessageClass = response.Success ? "text-success" : "text-danger";
+        InputReadonly = response.Success ? true : false;
+
+        Message = response.Message;
+
+        if (response.ValidationErrors != null)
+        {
+            Message = response.ValidationErrors.First();
+        }
+    }
+}

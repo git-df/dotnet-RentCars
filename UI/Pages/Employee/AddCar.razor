@@ -1,0 +1,60 @@
+﻿@layout UserLayout
+@page "/addcar/{Id:int}"
+@attribute [Authorize(Roles = "Admin, Employee")]
+@inject NavigationManager NavManager
+
+<UserBanner H1="Dodawanie samochodu"></UserBanner>
+
+<div class="container py-4">
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit" class="row">
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Vin</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.Vin" placeholder="Vin"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Rejestracja</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.PlaceNumber" placeholder="Rejestracja"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Rok produkcji</label>
+            <InputNumber class="form-control form-rounded" @bind-Value="@Model.Year" placeholder="Rok produkcji"></InputNumber>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Paliwo</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.Fuel" placeholder="Paliwo"></InputText>
+        </div>
+        <a href="/carsbymodel/@Id" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 me-auto">Wróć</a>
+        <span class="col text-center text-danger">@Message</span>
+        <button type="submit" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 ms-auto">Dodaj</button>
+    </EditForm>
+</div>
+
+
+@code {
+    [Inject]
+    public ICarService carService { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    public AddCarCommand Model { get; set; } = new AddCarCommand() { Image = "" };
+
+    public string Message { get; set; } = string.Empty;
+
+    protected async Task HandleSubmit()
+    {
+        Model.CarsModelId = Id;
+
+        var response = await carService.AddCar(Model);
+
+        Message = response.Message;
+
+        if (response.ValidationErrors != null)
+        {
+            Message = response.ValidationErrors.First();
+        }
+
+        if (response.Success)
+            NavManager.NavigateTo("/editcar/" + response.Data.ToString());
+    }
+}

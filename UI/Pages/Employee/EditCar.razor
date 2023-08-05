@@ -1,0 +1,281 @@
+﻿@layout UserLayout
+@page "/editcar/{CarId:int}"
+@attribute [Authorize(Roles = "Admin, Employee")]
+@inject NavigationManager NavManager
+@inject HttpClient Http
+
+<UserBanner H1="Edycja samochodu"></UserBanner>
+
+<div class="container py-4">
+    <EditForm Model="@ModelCar" OnValidSubmit="@HandleSubmit" class="row">
+        <div class="form-group pb-3 p-1 col-12">
+            @if (string.IsNullOrEmpty(ModelCar.Image))
+            {
+                <h3 class="text-center d-block">Brak zdjęcia</h3>
+                <InputFile class="d-none" OnChange="@OnInputFile" accept="image/jpeg, image/png" id="inputFile" />
+                <label class="btn bg-c3 form-rounded col-5 col-lg-2 mx-auto d-block" for="inputFile">Dodaj zdjęcie</label>
+            }
+            else
+            {
+                <img class="rounded-3 mx-auto d-block" src="@(Http.BaseAddress + "/img/m" + ModelCar.Image)">
+                <button class="btn bg-c3 mx-auto d-block mt-2 form-rounded" @onclick="@(e => DeleteImage())">Usuń zdjęcie</button>
+            }
+        </div>
+        <div>
+            <h2 class="text-center p-5">Informacje podstawowe</h2>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Marka</label>
+            <InputText class="form-control form-rounded" @bind-Value="@ModelCar.CarsModel.BrandName" readonly></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Model</label>
+            <InputText class="form-control form-rounded" @bind-Value="@ModelCar.CarsModel.ModelName" readonly></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Vin</label>
+            <InputText class="form-control form-rounded text-uppercase" @bind-Value="@ModelCar.Vin" placeholder="Vin"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Rejestracja</label>
+            <InputText class="form-control form-rounded text-uppercase" @bind-Value="@ModelCar.PlaceNumber" placeholder="Rejestracja"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Rok produkcji</label>
+            <InputNumber class="form-control form-rounded" @bind-Value="@ModelCar.Year" placeholder="Rok produkcji"></InputNumber>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Rodzaj paliwa</label>
+            <InputText class="form-control form-rounded" @bind-Value="@ModelCar.Fuel" placeholder="Rodzaj paliwa"></InputText>
+        </div>
+        <span class="col text-center @MessageClass">@Message</span>
+        <button type="submit" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 ms-auto">Zapisz</button>
+    </EditForm>
+
+    <div>
+        <h2 class="text-center p-5">Dodatkowe atrybuty</h2>
+    </div>
+    @if (ModelCarAttribute.Any())
+    {
+        foreach (var item in ModelCarAttribute)
+        {
+            <div class="p-2 my-2 row form-rounded @(InputClassId == item.Id ? InputClass : "")">
+                <div class="form-group p-1 col-lg-6">
+                    <InputText class="form-control form-rounded text-uppercase" @bind-Value="@item.Name" placeholder="Nazwa" @onfocusout="@(e => EditAttribute(item.Id))"></InputText>
+                </div>
+                <div class="form-group p-1 col">
+                    <InputText class="form-control form-rounded text-uppercase" @bind-Value="@item.Value" placeholder="Wartość" @onfocusout="@(e => EditAttribute(item.Id))"></InputText>
+                </div>
+                <div class="col-1 m-1 text-end">
+                    <button class="btn bg-c1 tx-c4 rounded-circle" @onclick="@(e => RemoveAttribute(item.Id))">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div>
+            <h5 class="text-center p-5">Brak atrybutów</h5>
+        </div>
+    }
+
+    <EditForm Model="@ModelAddAttribute" OnValidSubmit="@HandleSubmitAttribute" class="row">
+        <div>
+            <h3 class="text-center p-5">Dodaj atrybut</h3>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Nazwa</label>
+            <InputText class="form-control form-rounded text-uppercase" @bind-Value="@ModelAddAttribute.Name" placeholder="Nazwa"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Wartość</label>
+            <InputText class="form-control form-rounded text-uppercase" @bind-Value="@ModelAddAttribute.Value" placeholder="Wartość"></InputText>
+        </div>
+        <a href="/carsbymodel/@ModelCar.CarsModel.Id" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 me-auto">Wróć</a>
+        <span class="col text-center text-danger">@MessageAttribute</span>
+        <button type="submit" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 ms-auto">Dodaj</button>
+    </EditForm>
+
+</div>
+
+
+
+@code {
+    [Inject]
+    public ICarService carService { get; set; }
+
+    [Inject]
+    public ICarAttributeService carAttributeService { get; set; }
+
+    [Inject]
+    public IFileService fileService { get; set; }
+
+    [Parameter]
+    public int CarId { get; set; }
+
+    public GetCarDetailsQueryVM ModelCar { get; set; } = new GetCarDetailsQueryVM();
+    public List<GetCarAtributesByCarQueryVM> ModelCarAttribute { get; set; } = new List<GetCarAtributesByCarQueryVM>();
+    public AddCarAtributeCommand ModelAddAttribute { get; set; } = new AddCarAtributeCommand();
+
+    public string Message { get; set; } = string.Empty;
+    public string MessageAttribute { get; set; } = string.Empty;
+    public string MessageClass { get; set; } = string.Empty;
+
+    public string InputClass { get; set; } = string.Empty;
+    public int InputClassId { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await GetData();
+    }
+
+    private async Task GetData()
+    {
+        var carResponse = await carService.GetCarDetails(new GetCarDetailsQuery() { Id = CarId });
+        var attributeResponse = await carAttributeService.GetAtributesByCar(new GetCarAtributesByCarQuery() { CarId = CarId });
+
+        if (!carResponse.Success)
+        {
+            NavManager.NavigateTo("/models");
+        }
+
+        ModelCar = carResponse.Data;
+
+        if (attributeResponse.Success)
+        {
+            ModelCarAttribute = attributeResponse.Data.ToList();
+        }
+        else
+        {
+            ModelCarAttribute.Clear();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        var response = await carService.EditCar(new EditCarCommand()
+            {
+                Id = ModelCar.Id,
+                Fuel = ModelCar.Fuel,
+                Image = ModelCar.Image,
+                PlaceNumber = ModelCar.PlaceNumber.ToUpper(),
+                Vin = ModelCar.Vin.ToUpper(),
+                Year = ModelCar.Year
+            });
+
+        MessageClass = response.Success ? "text-success" : "text-danger";
+
+        Message = response.Message;
+
+        if (response.ValidationErrors != null)
+        {
+            Message = response.ValidationErrors.First();
+        }
+
+        await GetData();
+    }
+
+    private async Task HandleSubmitAttribute()
+    {
+        MessageAttribute = "";
+
+        ModelAddAttribute.CarId = CarId;
+        var response = await carAttributeService.AddAttribute(ModelAddAttribute);
+
+        if (response.Success)
+        {
+            ModelAddAttribute = new AddCarAtributeCommand();
+            await GetData();
+        }
+        else
+        {
+            MessageAttribute = response.Message;
+
+            if (response.ValidationErrors != null)
+            {
+                MessageAttribute = response.ValidationErrors.First();
+            }
+        }
+    }
+
+    private async Task OnInputFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var resizeFile = await file.RequestImageFileAsync(file.ContentType, 1280, 720);
+        var minResizeFile = await file.RequestImageFileAsync(file.ContentType, 640, 360);
+        var buf = new byte[resizeFile.Size];
+
+        using (var stream = resizeFile.OpenReadStream())
+        {
+            await stream.ReadAsync(buf);
+        }
+
+        var request = new UploadImageCommand()
+            {
+                Base64Data = Convert.ToBase64String(buf),
+                ContentType = file.ContentType,
+                FileName = DateTime.UtcNow.ToString("yyyyMMddHHmmssffff") + "-" + file.Name
+            };
+
+        var response = await fileService.UploadImage(request);
+
+        var mbuf = new byte[minResizeFile.Size];
+
+        using (var stream = minResizeFile.OpenReadStream())
+        {
+            await stream.ReadAsync(mbuf);
+        }
+
+        var mrequest = new UploadImageCommand()
+            {
+                Base64Data = Convert.ToBase64String(mbuf),
+                ContentType = file.ContentType,
+                FileName = "m" + request.FileName
+            };
+
+        var mresponse = await fileService.UploadImage(mrequest);
+
+        if (response.Success && mresponse.Success)
+        {
+            var updateResponse = await carService.ChangeImage(new ChangeImageCommand() { CarId = ModelCar.Id, Image = request.FileName });
+
+            if (updateResponse.Success)
+                ModelCar.Image = request.FileName;
+        }
+    }
+
+    private async Task DeleteImage()
+    {
+        var updateResponse = await carService.ChangeImage(new ChangeImageCommand() { CarId = ModelCar.Id, Image = "" });
+
+        if (updateResponse.Success)
+            ModelCar.Image = "";
+    }
+
+    private async Task RemoveAttribute(int attributeId)
+    {
+        var removeResponse = await carAttributeService.RemoveAttribute(new RemoveCarAtributeCommand() { Id = attributeId });
+
+        await GetData();
+    }
+
+    private async Task EditAttribute(int attributeId)
+    {
+        var updateArrtibute = ModelCarAttribute.FirstOrDefault(a => a.Id == attributeId);
+
+        var updateResponse = await carAttributeService.EditAttribute(new EditCarAtributeCommand()
+            {
+                Id = attributeId,
+                Name = updateArrtibute.Name,
+                Value = updateArrtibute.Value
+            });
+
+
+        InputClass = updateResponse.Success ? "bg-success" : "bg-danger";
+        InputClassId = attributeId;
+    }
+}

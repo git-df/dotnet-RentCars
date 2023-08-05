@@ -1,0 +1,56 @@
+﻿@layout HomeLayout
+@page "/contact"
+
+<PageTitle>Kontakt</PageTitle>
+
+<MainBanner H1="Dogoń swoje marzenia" H4="Kontakt"></MainBanner>
+
+<div class="container pb-5">
+    <h2 class="py-5 text-center">Masz pytania?</h2>
+    <div class="row px-5">
+        @if (Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-lg-6 p-3">
+                    <div class="card text-center p-5">
+                        <div class="card-body">
+                            <h3 class="card-title">@item.Name.ToUpper()</h3>
+                            <p class="card-text pb-2">tel: @item.PhoneNumber.ToUpper()</p>
+                            <p class="card-text">@item.Address.Country.ToUpper() ul. @item.Address.StreetWithNumber.ToUpper()</p>
+                            <p class="card-text">@item.Address.PostalCode.ToUpper(), @item.Address.City.ToUpper()</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-center">@Message</p>
+        }
+    </div>
+</div>
+
+
+@code {
+    [Inject]
+    public IHomeService homeService { get; set; }
+
+    public List<GetContactsQueryVM> Model { get; set; } = new List<GetContactsQueryVM>();
+
+    public string Message { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Message = "Ładowanie";
+
+        var response = await homeService.GetContacts();
+
+        if (response.Success)
+        {
+            Model = response.Data.ToList();
+        }
+
+        Message = response.Message;
+    }
+}

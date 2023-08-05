@@ -1,0 +1,253 @@
+﻿@inject NavigationManager NavManager
+@layout UserLayout
+@page "/rent"
+@attribute [Authorize]
+@inject HttpClient Http
+
+<UserBanner H1="Lista ofert"></UserBanner>
+
+<div class="container">
+
+    <Items Parameters="@Parameters" EnablePagination="true" EnableSearch="true" GoSearch="@GoSearch" PageSizeChange="@PageSizeChange" PageChange="@PageChange">
+        <AfrerSearch>
+            <div class="col-7 col-xl-3 p-1">
+
+                <InputSelect @bind-Value="@BranchId" class="form-select form-rounded" size="1">
+                    <option value="0">Wszystkie oddziały</option>
+                    @foreach (var item in ModelBranches)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-6 col-xl-2 p-1">
+                <input type="datetime-local" class="form-control form-rounded" @bind-value="@FromDate" />
+            </div>
+            <div class="col-6 col-xl-2 p-1">
+                <input type="datetime-local" class="form-control form-rounded" @bind-value="@ToDate" />
+            </div>
+        </AfrerSearch>
+
+        <Body>
+            @if (Model.Any())
+            {
+                <table class="table text-center">
+                    <thead>
+                        <tr>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="row">
+                                    <div class="col-12 col-lg-4">
+                                        <img src="@(Http.BaseAddress + "/img/m" + item.Image)" alt="..." class="img-thumbnail">
+                                    </div>
+                                    <div class="col-12 col-lg-8">
+                                        <h2 class="pt-3">@item.CarsModel.BrandName @item.CarsModel.ModelName</h2>
+                                        <p>Rok produkcji: @item.Year</p>
+                                        <h5>Cena od: @item.BestPrice zł</h5>
+                                        <button class="btn bg-c1 tx-c4 mb-1" @onclick="@(e => Details(item.Id))">
+                                            Dalej
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="text-center p-5"><h2>@Message</h2></div>
+            }
+        </Body>
+    </Items>
+
+</div>
+
+@if (displayPanel)
+{
+    <div class="bg-c3 p-1" style="
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        position: fixed;
+    ">
+        <div class="bg-c4 p-5 text-center" style="
+            max-height: 80vh; /* viewport height */
+            overflow-y: scroll;
+            overflow-x: hidden;
+            ">
+            <img src="@(Http.BaseAddress + "/img/" + ModelOffer.Image)" class="img-fluid w-100 form-rounded" alt="Responsive image">
+            <h2 class="p-3">@ModelOffer.CarsModel.BrandName @ModelOffer.CarsModel.ModelName</h2>
+            <p>ROK PRODUKCJI: @ModelOffer.Year</p>
+            <p>PALIWO: @ModelOffer.Fuel.ToUpper()</p>
+            @foreach (var item in ModelOffer.CarAttributes)
+            {
+                <p>@item.Name.ToUpper(): @item.Value.ToUpper()</p>
+            }
+            <h3 class="pt-2">Rezerwuj</h3>
+            <h5>(@FromDate.ToString("dd.MM.yyyy H:m") - @ToDate.ToString("dd.MM.yyyy H:m"))</h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="text-start">Oddział</th>
+                        <th>Cena za godzinę</th>
+                        <th>Cena za dzień</th>
+                        <th>Cena za wynajem</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ModelOffer.Offers)
+                    {
+                        <tr>
+                            <td class="text-start">@item.Branch.Name</td>
+                            <td>@item.PricePerHour zł</td>
+                            <td>@item.PricePreDay zł</td>
+                            <td>@item.Price zł</td>
+                            <td><button class="btn bg-c1 tx-c3" @onclick="@(e => GoRent(item.Id) )">Wybierz</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <button class="btn bg-c1 tx-c3 m-2 mx-auto d-block" @onclick="@(e => displayPanel=false)">Wróć</button>
+    </div>
+}
+
+@code {
+    [Inject]
+    public IRentService rentService { get; set; }
+
+    public List<GetRentOptionsQueryVM> Model { get; set; } = new List<GetRentOptionsQueryVM>();
+    public GetRentOptionsDetailsQueryVM ModelOffer { get; set; } = new GetRentOptionsDetailsQueryVM()
+        {
+            CarsModel = new CarsModelInGetRentOptionsDetailsQueryVM()
+        };
+    public List<GetBranchesWithOffertsQueryVM> ModelBranches { get; set; } = new List<GetBranchesWithOffertsQueryVM>();
+
+    public string Message { get; set; } = string.Empty;
+
+    public BasePagerFilter Parameters { get; set; } = new BasePagerFilter();
+
+    public DateTime FromDate { get; set; } = DateTime.UtcNow.AddDays(1);
+    public DateTime ToDate { get; set; } = DateTime.UtcNow.AddDays(1).AddHours(2);
+    public int BranchId { get; set; } = 0;
+
+    public bool displayPanel { get; set; } = false;
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        var data = await rentService.GetBranchesWithOfferts();
+
+        if (data.Success)
+        {
+            ModelBranches = data.Data.ToList();
+            await GetData();
+        }
+        else
+        {
+            Message = data.Message;
+        }
+    }
+
+    public async Task PageChange(int newPageNumber)
+    {
+        if (newPageNumber < 1 || newPageNumber > Parameters.TotalPages)
+        {
+            return;
+        }
+
+        Parameters.Page = newPageNumber;
+        await GetData();
+    }
+
+    public async Task PageSizeChange(int newPageSize)
+    {
+        Parameters.PageSize = newPageSize;
+        Parameters.Page = 1;
+        await GetData();
+    }
+
+    public async Task GoSearch(string newSearch)
+    {
+        Parameters.Search = newSearch;
+        Parameters.Page = 1;
+        await GetData();
+    }
+
+    public async Task GetData()
+    {
+        Message = "Ładowanie";
+        Model.Clear();
+
+        var response = await rentService.GetRentOptions(new GetRentOptionsQuery()
+            {
+                Page = Parameters.Page,
+                PageSize = Parameters.PageSize,
+                Search = Parameters.Search,
+                BranchId = BranchId,
+                OrderBy = "Price",
+                DateFrom = FromDate,
+                DateTo = ToDate
+            });
+
+        if (response.Success)
+        {
+            Model = response.Data.ToList();
+            Parameters.UpdateTotalPages(response.DataCount);
+        }
+        else
+        {
+            Model.Clear();
+            Parameters.UpdateTotalPages(0);
+        }
+
+        Message = response.Message;
+
+        if (response.ValidationErrors != null)
+        {
+            Message = response.ValidationErrors.First();
+        }
+    }
+
+    public async Task Details(int id)
+    {
+        var data = await rentService.GetRentOptionsDetails(new GetRentOptionsDetailsQuery()
+            {
+                CarId = id,
+                DateFrom = FromDate,
+                DateTo = ToDate
+            });
+
+        if (data.Success)
+        {
+            ModelOffer = data.Data;
+            displayPanel = true;
+        }
+    }
+
+    public async Task GoRent(int id)
+    {
+        displayPanel = false;
+
+        var response = await rentService.AddRent(new AddRentCommand()
+        {
+            CarId = ModelOffer.Id,
+            OfferId = id,
+            DateFrom = FromDate,
+            DateTo = ToDate,
+            UserAppId = 0
+        });
+
+        if (response.Success)
+        {
+            NavManager.NavigateTo("/myorders");
+        }
+    }
+}

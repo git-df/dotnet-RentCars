@@ -1,0 +1,88 @@
+﻿@layout UserLayout
+@page "/editbranch/{id:int}"
+@attribute [Authorize(Roles = "Admin")]
+
+<UserBanner H1="Edycja Oddziału"></UserBanner>
+
+<div class="container py-4">
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit" class="row">
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Nazwa</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.Name" placeholder="Nazwa"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Telefon</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.PhoneNumber" placeholder="Telefon"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Kraj</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.Address.Country" placeholder="Kraj"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Ulica oraz numer domu</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.Address.StreetWithNumber" placeholder="Ulica"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Kod pocztowy</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.Address.PostalCode" placeholder="Kod pocztowy"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Miasto</label>
+            <InputText class="form-control form-rounded" @bind-Value="@Model.Address.City" placeholder="Miasto"></InputText>
+        </div>
+        <a href="/branches" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 me-auto">Wróć</a>
+        <span class="col text-center @MessageClass">@Message</span>
+        <button type="submit" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 ms-auto">Zapisz</button>
+    </EditForm>
+</div>
+
+@code {
+    [Inject]
+    public IBranchService branchService { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    public GetBranchDetailsQueryVM Model { get; set; } = new GetBranchDetailsQueryVM() { Address = new AddressInGetBranchDetailsQueryVM() };
+
+    public string Message { get; set; } = string.Empty;
+
+    public string MessageClass { get; set; } = string.Empty;
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        var response = await branchService.GetBranchDetails(new GetBranchDetailsQuery() { Id = Id });
+
+        if (response.Success)
+        {
+            Model = response.Data;
+        }
+    }
+
+    protected async Task HandleSubmit()
+    {
+        var response = await branchService.EditBranch(new EditBranchCommand()
+        {
+            Id = Model.Id,
+            Name = Model.Name,
+            PhoneNumber = Model.PhoneNumber,
+            Address = new AddressInEditBranchCommand()
+            {
+                City = Model.Address.City,
+                Country = Model.Address.Country,
+                StreetWithNumber = Model.Address.StreetWithNumber,
+                PostalCode = Model.Address.PostalCode
+            }
+        });
+
+        MessageClass = response.Success ? "text-success" : "text-danger";
+
+        Message = response.Message;
+
+        if (response.ValidationErrors != null)
+        {
+            Message = response.ValidationErrors.First();
+        }
+    }
+}

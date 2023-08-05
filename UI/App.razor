@@ -1,0 +1,18 @@
+﻿<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData">
+                <NotAuthorized>
+                    <LayoutView Layout="@typeof(EmptyLayout)">
+                        <Error H1="Nie masz tu dostępu :c" P="401"></Error>
+                    </LayoutView>
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(EmptyLayout)">
+                <Error H1="Nie ma takiej strony :c" P="404"></Error>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

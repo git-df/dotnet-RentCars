@@ -1,0 +1,65 @@
+﻿@inject NavigationManager NavManager
+
+<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+	<div class="container">
+		<a href="" class="navbar-brand"><span class="tx-c3">Rent</span>Cars</a>
+		<button aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbarContent" data-bs-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span></button>
+		<div class="collapse navbar-collapse" id="navbarContent">
+			<div class="mx-auto"></div>
+			<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+				<li class="nav-item">
+					<a class="nav-link" href=""><b>O Nas</b></a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="cars">Samochody</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="contact">Kontakt</a>
+				</li>
+			</ul>
+			<div class="mx-auto"></div>
+			<div>
+				<AuthorizeView>
+					<Authorized>
+						<button @onclick=@NavigateToProfile class="btn btn-dark">@context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value</button>
+						<button @onclick=@SignOut class="btn btn-dark">Wyloguj</button>
+					</Authorized>
+					<NotAuthorized>
+						<button @onclick=@NavigateToSignIn class="btn btn-dark">Zaloguj się</button>
+					</NotAuthorized>
+				</AuthorizeView>
+				
+			</div>
+		</div>
+	</div>
+</nav>
+
+@code {
+	[Inject]
+	public IAuthService authService { get; set; }
+
+	protected async override Task OnInitializedAsync()
+	{
+		var response = await authService.GetUserAuthInfo();
+
+		if (!response.Success)
+		{
+			authService.SignOut();
+		}
+	}
+
+	void NavigateToSignIn()
+	{
+		NavManager.NavigateTo("/signin");
+	}
+
+	void NavigateToProfile()
+	{
+		NavManager.NavigateTo("/profile");
+	}
+
+	void SignOut()
+	{
+		authService.SignOut();
+	}
+}

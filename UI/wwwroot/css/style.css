@@ -1,0 +1,225 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Oswald&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    font-family: 'Oswald', sans-serif;
+    width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    font-size: 19px;
+    transition: 0.2s;
+}
+
+.loading-progress {
+    position: relative;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    margin: 20vh auto 1rem auto;
+}
+
+    .loading-progress circle {
+        fill: none;
+        stroke: #e0e0e0;
+        stroke-width: 0.6rem;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
+    }
+
+        .loading-progress circle:last-child {
+            stroke: #1b6ec2;
+            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            transition: stroke-dasharray 0.05s ease-in-out;
+        }
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+}
+
+    .loading-progress-text:after {
+        content: var(--blazor-load-percentage-text, "Loading");
+    }
+
+
+.bg-c1 {
+    background-color: #222831;
+}
+
+.bg-c2 {
+    background-color: #393E46;
+}
+
+.bg-c3 {
+    background-color: #00ADB5;
+}
+
+.bg-c4 {
+    background-color: #EEEEEE;
+}
+
+.tx-c1:hover,
+.tx-c1 {
+    color: #222831;
+}
+
+.tx-c2:hover,
+.tx-c2 {
+    color: #393E46;
+}
+
+.tx-c3:hover,
+.tx-c3 {
+    color: #00ADB5;
+}
+
+.tx-c4:hover,
+.tx-c4 {
+    color: #EEEEEE;
+}
+
+.hcenter {
+    width: inherit;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.minw {
+    width: fit-content;
+}
+
+.form-rounded {
+    font-size: 20px;
+    border-radius: 2rem;
+}
+
+.left-rounded {
+    border-radius: 2rem 0rem 0rem 2rem;
+}
+
+.row {
+    --bs-gutter-x: 0;
+}
+
+a:hover {
+    font-weight: bold;
+}
+
+#mainbanner {
+    height: 100vh;
+    width: 100vw;
+    background-image: url(../img/mainbanner.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: 50% 100%;
+}
+
+#mbup {
+    height: 75vh;
+    width: 100vw;
+}
+
+#mbdown {
+    height: 25vh;
+    width: 100vw;
+}
+
+#mbdt {
+    width: 0;
+    height: 25vh;
+    border-top: 100px solid transparent;
+    border-left: 100vw solid #EEEEEE;
+}
+
+#mbdhero {
+    width: inherit !important;
+    max-width: max-content !important;
+    background-color: white;
+    height: fit-content;
+    position: absolute;
+    left: 50%;
+    top: 80%;
+    transform: translate(-50%, -50%);
+    border-radius: 2rem;
+}
+
+#hero {
+    border-right: 5px solid #00ADB5;
+}
+
+.fixed-top {
+    position: absolute !important;
+}
+
+.page-link {
+    color: #222831;
+}
+
+    .page-link:hover {
+        background-color: #EEEEEE;
+        color: #222831;
+    }
+
+.page-link-selected {
+    background-color: #00ADB5;
+}
+
+    .page-link-selected:hover {
+        background-color: #00ADB5;
+        color: #222831;
+        font-weight: 100;
+    }
+
+#sideMenu {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    margin-left: -300px;
+    transition: 0.2s;
+    z-index: 999;
+}
+
+#btnSideMenu {
+    position: fixed;
+    margin-left: 30px;
+    margin-top: 30px;
+    transition: 0.2s;
+}
+
+.move-btnSideMenu {
+    margin-left: 280px !important;
+}
+
+.move-sideMenu {
+    margin-left: 0px !important;
+}
+
+.nav-pills li:hover {
+    background-color: #393E46;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.listInput:focus,
+.listInput {
+    background-color: #EEEEEE;
+}
+
+    .listInput:focus {
+        background-color: white;
+    }
+
+#inputFile {
+    border: 3px solid #00ADB5;
+}

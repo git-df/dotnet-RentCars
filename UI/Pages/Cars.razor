@@ -1,0 +1,108 @@
+﻿@layout HomeLayout
+@page "/cars"
+@inject HttpClient Http
+
+<MainBanner H1="Wypożyczalnia samochodów, która spełnia Twoje oczekiwania" H4="Samochody"></MainBanner>
+
+<div class="container pb-5">
+    <h2 class="py-5 text-center">Nasza flota</h2>
+
+    <Items Parameters="@Parameters" EnablePagination="@Model.Any()" EnableSearch="true" GoSearch="@GoSearch" PageSizeChange="@PageSizeChange" PageChange="@PageChange">
+        <Body>
+            <div class="row">
+                @foreach (var item in Model)
+                {
+                    <div class="col-lg-4 p-3">
+                        <div class="card">
+                            @if (!string.IsNullOrEmpty(item.Image))
+                            {
+                                <img class="card-img-top" src="@(Http.BaseAddress + "/img/m" + item.Image)">
+                            }
+                            else
+                            {
+                                <img class="card-img-top" src="/img/cars/blank.png">
+                            }
+
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Name</h5>
+                                <div>
+                                    <a class="btn bg-c2 tx-c4 float-end fs-6 align-bottom" href="/cardetails/@item.Id">Więcej</a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </Body>
+    </Items>
+</div>
+
+
+
+@code {
+    [Inject]
+    public IHomeService homeService { get; set; }
+
+    public string Message { get; set; } = string.Empty;
+
+    public BasePagerFilter Parameters { get; set; } = new BasePagerFilter();
+
+    public List<GetCarsQueryVM> Model { get; set; } = new List<GetCarsQueryVM>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        await GetData();
+    }
+
+    public async Task PageChange(int newPageNumber)
+    {
+        if (newPageNumber < 1 || newPageNumber > Parameters.TotalPages)
+        {
+            return;
+        }
+
+        Parameters.Page = newPageNumber;
+        await GetData();
+    }
+
+    public async Task PageSizeChange(int newPageSize)
+    {
+        Parameters.PageSize = newPageSize;
+        Parameters.Page = 1;
+        await GetData();
+    }
+
+    public async Task GoSearch(string newSearch)
+    {
+        Parameters.Search = newSearch;
+        Parameters.Page = 1;
+        await GetData();
+    }
+
+    public async Task GetData()
+    {
+        Message = "Ładowanie";
+        Model.Clear();
+
+        var response = await homeService.GetCars(new GetCarsQuery()
+            {
+                Page = Parameters.Page,
+                PageSize = Parameters.PageSize,
+                Search = Parameters.Search
+            });
+
+        if (response.Success)
+        {
+            Model = response.Data.ToList();
+            Parameters.UpdateTotalPages(response.DataCount);
+        }
+        else
+        {
+            Model.Clear();
+            Parameters.UpdateTotalPages(0);
+        }
+
+        Message = response.Message;
+    }
+}

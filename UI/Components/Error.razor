@@ -1,0 +1,13 @@
+﻿<div class="text-center vh-100 vw-100 bg-c3 tx-c4">
+    <div class="hcenter">
+        <h1>@H1</h1>
+        <p class="p-5">@P</p>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string H1 { get; set; } = string.Empty;
+    [Parameter]
+    public string P { get; set; } = string.Empty;
+}

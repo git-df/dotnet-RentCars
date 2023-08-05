@@ -1,0 +1,69 @@
+﻿@layout UserLayout
+@page "/addbranch"
+@attribute [Authorize(Roles = "Admin")]
+
+<UserBanner H1="Dodawanie Oddziału"></UserBanner>
+
+<div class="container py-4">
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit" class="row">
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Nazwa</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.Name" placeholder="Nazwa"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Telefon</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.PhoneNumber" placeholder="Telefon"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Kraj</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.Address.Country" placeholder="Kraj"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Ulica oraz numer domu</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.Address.StreetWithNumber" placeholder="Ulica"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Kod pocztowy</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.Address.PostalCode" placeholder="Kod pocztowy"></InputText>
+        </div>
+        <div class="form-group pb-3 p-1 col-lg-6">
+            <label class="ms-3">Miasto</label>
+            <InputText class="form-control form-rounded" readonly="@InputReadonly" @bind-Value="@Model.Address.City" placeholder="Miasto"></InputText>
+        </div>
+        <a href="/branches" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 me-auto">Wróć</a>
+        <span class="col text-center @MessageClass">@Message</span>
+        @if (!@InputReadonly)
+        {
+            <button type="submit" class="btn bg-c3 form-rounded col-3 col-lg-2 col-xl-1 ms-auto">Dodaj</button>
+        }
+    </EditForm>
+</div>
+
+
+@code {
+    [Inject]
+    public IBranchService branchService { get; set; }
+
+    public AddBranchCommand Model { get; set; } = new AddBranchCommand() { Address = new AddressInAddBranchCommand() };
+
+    public string Message { get; set; } = string.Empty;
+
+    public string MessageClass { get; set; } = string.Empty;
+    public bool InputReadonly { get; set; } = false;
+
+
+    protected async Task HandleSubmit()
+    {
+        var response = await branchService.AddBranch(Model);
+
+        MessageClass = response.Success ? "text-success" : "text-danger";
+        InputReadonly = response.Success ? true : false;
+
+        Message = response.Message;
+
+        if (response.ValidationErrors != null)
+        {
+            Message = response.ValidationErrors.First();
+        }
+    }
+}

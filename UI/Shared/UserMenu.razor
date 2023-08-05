@@ -1,0 +1,56 @@
+﻿@inject NavigationManager NavManager
+
+<div class="d-flex flex-column flex-shrink-0 p-3 tx-c4 bg-c1 @ClassNav" id="sideMenu">
+    <a href="/" class="d-flex align-items-center mb-1 text-white text-decoration-none">
+        <span class="fs-2 tx-c4"><span class="tx-c3">Rent</span>Cars</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        @foreach (var item in Menu)
+        {
+            <li class="rounded-3 mb-1">
+                <a href="@item.Route" class="nav-link @item.ClassCss" @onclick="ToggleNavMenu">
+                    @item.Name
+                </a>
+            </li>
+        }
+    </ul>
+    <hr>
+    <button class="btn bg-c3" @onclick="NavigateToSignIn">Wyloguj się</button>
+</div>
+<button class="btn bg-c3 @ClassBtn" id="btnSideMenu" @onclick="ToggleNavMenu">MENU</button>
+
+@code {
+    [Inject]
+    public IUserService userService { get; set; }
+
+    public string ClassBtn { get; set; } = "";
+    public string ClassNav { get; set; } = "";
+
+    public List<GetMenuVM> Menu { get; set; } = new List<GetMenuVM>();
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        var data = await userService.GetMenu();
+
+        if (data.Success)
+        {
+            Menu = data.Data.ToList();
+        }
+        else
+        {
+            NavManager.NavigateTo("/signin");
+        }
+    }
+
+    private void ToggleNavMenu()
+    {
+        ClassBtn = ClassBtn == "" ? "move-btnSideMenu" : "";
+        ClassNav = ClassNav == "" ? "move-sideMenu" : "";
+    }
+
+    private void NavigateToSignIn()
+    {
+        NavManager.NavigateTo("/signin");
+    }
+}

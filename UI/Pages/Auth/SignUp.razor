@@ -1,0 +1,103 @@
+﻿@layout EmptyLayout
+@page "/signup"
+@inject NavigationManager NavManager
+
+<PageTitle>Rejestracja</PageTitle>
+
+<div>
+    <div class="row text-center">
+        <div class="col-xl-8 bg-white tx-2 vh-100">
+            <div class="hcenter">
+                <div class="minw mx-auto">
+                    <h1 class="mx-3"><b>Utwórz swoje nowe konto</b></h1>
+                    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit">
+                        <div class="form-group pb-3 pt-5">
+                            <InputText type="email" class="form-control form-rounded bg-c4" @bind-Value="@Model.Email" placeholder="Email"></InputText>
+                        </div>
+                        <div class="form-group pb-3">
+                            <InputText class="form-control form-rounded bg-c4" @bind-Value="@Model.UserInfo.FirstName" placeholder="Imie"></InputText>
+                        </div>
+                        <div class="form-group pb-3">
+                            <InputText class="form-control form-rounded bg-c4" @bind-Value="@Model.UserInfo.LastName" placeholder="Nazwisko"></InputText>
+                        </div>
+                        <div class="form-group pb-3">
+                            <InputDate class="form-control form-rounded bg-c4" @bind-Value="@Model.UserInfo.DateOfBirth" placeholder="Data Urodzenia"></InputDate>
+                        </div>
+                        <div class="form-group pb-4">
+                            <InputText class="form-control form-rounded bg-c4" @bind-Value="@Model.UserInfo.PhoneNumber" placeholder="Numer Telefonu"></InputText>
+                        </div>
+                        <div class="form-group pb-4">
+                            <InputText class="form-control form-rounded bg-c4" @bind-Value="@Model.UserInfo.Pesel" placeholder="PESEL"></InputText>
+                        </div>
+                        <div class="form-group pb-4">
+                            <InputText type="password" class="form-control form-rounded bg-c4" @bind-Value="@Model.Password" placeholder="Hasło"></InputText>
+                        </div>
+                        <div class="form-group pb-4">
+                            <InputText type="password" class="form-control form-rounded bg-c4" @bind-Value="@ConfirmPassword" placeholder="Powtórz hasło"></InputText>
+                        </div>
+                        <div class="form-group pb-1">
+                            <span class="text-warning">@Message</span>
+                        </div>
+                        <button type="button" @onclick=@Navigate class="btn bg-white btn-lg form-rounded d-xl-none">Zaloguj się</button>
+                        <button type="submit" class="btn bg-c3 btn-lg form-rounded">Zarejestruj się</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+        <div class="d-none d-xl-block col-4 bg-c3 tx-1 vh-100">
+            <div class="hcenter">
+                <div class="minw mx-auto">
+                    <h1 class="mx-3 pb-3"><b>Posiadasz konto?</b></h1>
+                    <p class="pb-4 px-3">Nie trać czasu!</p>
+                </div>
+                <button type="button" @onclick=@Navigate class="btn bg-white btn-lg form-rounded">Zaloguj się</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    public IAuthService authService { get; set; }
+
+    public SignUpCommand Model { get; set; } 
+        = new SignUpCommand() { UserInfo = new UserInfoInSignUpCommand() { DateOfBirth = new DateTime(2000, 1, 1).AddYears(-18) } };
+
+    public string Message { get; set; } = string.Empty;
+
+    public string ConfirmPassword { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        await authService.SignOut();
+    }
+
+    void Navigate()
+    {
+        NavManager.NavigateTo("/signin");
+    }
+
+    protected async Task HandleSubmit()
+    {
+        if (Model.Password != ConfirmPassword)
+        {
+            Message = "Hasła nie są takie same";
+        }
+
+        BaseResponse response = await authService.SignUp(Model);
+
+        if (response.Success)
+        {
+            NavManager.NavigateTo("/signin/Zarejestrowano");
+        }
+
+        if (!string.IsNullOrEmpty(response.Message))
+        {
+            Message = response.Message;
+        }
+        else if (!string.IsNullOrEmpty(response.ValidationErrors.FirstOrDefault()))
+        {
+            Message = response.ValidationErrors.FirstOrDefault() ?? "";
+        }
+    }
+}
