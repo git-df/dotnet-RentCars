@@ -5,6 +5,7 @@ Welcome to RentCars! This is a project focused on building a car rental manageme
 ## Technologies
 * Blazor WebAssembly
 * Rest API
+* MS SQL
 
 Project is created with:
 - Entity Framework Core (7.0.3)
