@@ -1,6 +1,8 @@
-# RentCars
+# RentCars - Car Rental System
 
-Welcome to RentCars! This is a project focused on building a car rental management system using the .NET Core (Blazor webassembly and RESR API). The system provides features to manage car rental operations, reservations, customers, and more.
+Welcome to RentCars! This is a comprehensive car rental system developed as a part of an engineering degree capstone project. This project utilizes .NET Core 7, with the frontend built using Blazor WebAssembly and the backend consisting of a REST API.
+
+[Documentation of engineering degree project](https://dawidflorian.pl/file/RentCars_Dawid_Florian.pdf)
 
 ## Technologies
 * Blazor WebAssembly
