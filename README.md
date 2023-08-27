@@ -14,3 +14,14 @@ Project is created with:
 - MediatR (11.0.0)
 - Fluent Validation (11.5.1)
 - Auto Mapper (12.0.1)
+
+## Application view
+
+### Home
+![ER diagram for nfldb](https://dawidflorian.pl/file/rc_1.png)
+
+### Offer
+![ER diagram for nfldb](https://dawidflorian.pl/file/rc_2.png)
+
+### Admin panel
+![ER diagram for nfldb](https://dawidflorian.pl/file/rc_3.png)
